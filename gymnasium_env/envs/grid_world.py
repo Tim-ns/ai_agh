@@ -70,19 +70,21 @@ class GridWorldEnv(gym.Env):
 
     def _place_tiles(self):
         self.walls = [
-            np.array([0,1]), np.array([1,3]), np.array([3,1]), np.array([4,2]), np.array([3,4]) 
+            np.array([0,2]), np.array([1,3]), np.array([3,0]), np.array([3,4]), np.array([4,2]) 
+            #np.array([2,0]), np.array([3,1]), np.array([0,3]), np.array([4,3]), np.array([2,4]) 
+
         ]
         for r,c in self.walls:
             self.grid[r,c] = TileType.WALL
 
         self.pits = [
-            np.array([1,1]), np.array([3,2]), np.array([1,4])
+            np.array([1,1]), np.array([3,1]), np.array([3,2])
         ]
         for r,c in self.pits:
             self.grid[r,c] = TileType.PIT
         
-        self.tile_A = (0,4)
-        self.tile_B = (4,0)
+        self.tile_A = (1,2)
+        self.tile_B = (1,4)
 
 
         self.grid[self.tile_A] = TileType.A
@@ -203,6 +205,14 @@ class GridWorldEnv(gym.Env):
             (target_x, target_y),
             int(pix_square_size / 2),
         )
+        #pygame.draw.rect(
+        #    canvas,
+        #    (255, 0, 0),
+        #   pygame.Rect(
+        #        pix_square_size * self._target_location,
+         #       (pix_square_size, pix_square_size),
+         #   ),
+        #)
         
         # Now we draw the agent
         pygame.draw.circle(
