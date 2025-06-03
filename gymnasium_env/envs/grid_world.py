@@ -133,12 +133,16 @@ class GridWorldEnv(gym.Env):
             self._agent_location = new_agent_location
         current_tile = self.grid[self._agent_location[0], self._agent_location[1]]
 
+        if np.array_equal(self._agent_location, self._target_location):
+            reward += 100
+            terminated = True
+
         if current_tile == TileType.PIT:
             reward += -10
             terminated = True
         elif current_tile == TileType.A:
             if not self.visited_A:
-                reward = 10
+                reward += 10
                 self.visited_A = True
         elif current_tile == TileType.B and not self.visited_B:
             reward += 10
