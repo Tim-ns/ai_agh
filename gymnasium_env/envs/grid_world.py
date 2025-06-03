@@ -142,10 +142,10 @@ class GridWorldEnv(gym.Env):
             if not self.visited_A:
                 reward = 10
                 self.visited_A = True
-        elif current_tile == TileType.B:
-            if not self.visited_B:
-                reward += 10
-                self.visited_B = True
+        elif current_tile == TileType.B and not self.visited_B:
+            reward += 10
+            self.visited_B = True
+        elif current_tile == TileType.B and self.visited_B:    
             terminated = True
         observation = self._get_obs()
         info = self._get_info()
