@@ -70,7 +70,7 @@ class GridWorldEnv(gym.Env):
 
     def _place_tiles(self):
         self.walls = [
-            np.array([0,1]), np.array([1,3]), np.array([3,1]), np.array([4,1]), np.array([3,4]) 
+            np.array([0,1]), np.array([1,3]), np.array([3,1]), np.array([3,0]), np.array([3,4]) 
         ]
         for r,c in self.walls:
             self.grid[r,c] = TileType.WALL
