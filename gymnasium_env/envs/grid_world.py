@@ -126,17 +126,36 @@ class GridWorldEnv(gym.Env):
     def step(self, action):
         terminated = False
         reward = -0.1
+        direction = self._action_to_direction[action]
+        move_distance = 1
+        if self.np_random.random() < 0.1:
+            move_distance = 2
         #old_agent_location = self._agent_location.copy()
-        new_agent_location = self._agent_location + self._action_to_direction[action]
+        new_agent_location = self._agent_location + direction* move_distance
+        skipped_tile_location == None
+        if move_distance == 2:
+            skipped_tile_location = self._agent_location + direction
 
         if not (0 <= new_agent_location[0] < self.size and 0 <= new_agent_location[1] < self.size):
             return self._get_obs(), reward,  terminated, False, self._get_info()
         if self.grid[new_agent_location[0], new_agent_location[1]] == TileType.WALL:
             return self._get_obs(), reward,  terminated, False, self._get_info()
-        else:
-            self._agent_location = new_agent_location
-        current_tile = self.grid[self._agent_location[0], self._agent_location[1]]
+        #else:
+        #    self._agent_location = new_agent_location
+        #current_tile = self.grid[self._agent_location[0], self._agent_location[1]]
+        if skipped_tile_location is not None:
+            if not (0 <= new_agent_location[0] < self.size and 0 <= skipped_tile_location[1] < self.size):
+                return self._get_obs(), reward, terminated, False, self._get_info()
+            if self.grid[skipped_tile_location[0], skipped_tile_location[1]] == TileType.WALL:
+                return self._get_obs(), reward, terminated, False, self._get_info()
+       
+        self._agent_location = new_agent_location
+        if skipped_tile_location is not None:
+            skipped_tile = self.grid[skipped_tile_location[0], skipped_tile_location[1]]
+            if skipped_tile in [TileType.A, TileType.B, TileType.PIT]:
+                reward -= 0.1
 
+        current_tile = self.grid[self._agent_location[0], self._agent_location[1]]
         if np.array_equal(self._agent_location, self._target_location):
             reward += 1000
             terminated = True
