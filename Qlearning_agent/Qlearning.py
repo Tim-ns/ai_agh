@@ -52,25 +52,32 @@ class DiscretizedObservationWrapper(gym.ObservationWrapper):
             for i, obs in enumerate(observation)
         )
 
+
 def train_agent_alpha(env, agent, max_steps, train_episodes, min_epsilon, max_epsilon, decay):
     raw_states = []
     training_rewards_alpha = []
     epsilons_alpha = []
     state_visit_count = {}
     for episode in tqdm(range(train_episodes), desc="Training Progress"):
-        # Reseting the environment each time as per requirement
         state, info = env.reset()
-        # Starting the tracker for the rewards
+        # Convert state to a hashable type
+        if isinstance(state, dict):
+            state = tuple(sorted(state.items()))
+        else:
+            state = tuple(state)
+
         total_training_rewards = 0
-        # state = tuple(state)
 
         for step in range(max_steps):
             raw_states.append(state)
             action = agent.choose_action(state)
-            ### STEPs 3 & 4: performing the action and getting the reward
-            # Taking the action and getting the reward and outcome state
             new_state, reward, terminated, truncated, info = env.step(action)
-            new_state = tuple(new_state)
+
+            # Convert new_state to hashable type
+            if isinstance(new_state, dict):
+                new_state = tuple(sorted(new_state.items()))
+            else:
+                new_state = tuple(new_state)
 
             if state not in state_visit_count:
                 state_visit_count[state] = 0
@@ -82,14 +89,10 @@ def train_agent_alpha(env, agent, max_steps, train_episodes, min_epsilon, max_ep
             total_training_rewards += reward
             state = new_state
 
-            # Ending the episode
             if terminated or truncated:
                 break
 
-        # Cutting down on exploration by reducing the epsilon
-        agent.epsilon = min_epsilon + (max_epsilon - min_epsilon)*np.exp(-decay*episode)
-
-        # Adding the total reward and reduced epsilon values
+        agent.epsilon = min_epsilon + (max_epsilon - min_epsilon) * np.exp(-decay * episode)
         training_rewards_alpha.append(total_training_rewards)
         epsilons_alpha.append(agent.epsilon)
     return training_rewards_alpha, epsilons_alpha
