@@ -70,7 +70,7 @@ class GridWorldEnv(gym.Env):
 
     def _place_tiles(self):
         self.walls = [
-            np.array([0,1]), np.array([1,3]), np.array([3,1]), np.array([4,2]), np.array([3,4]) 
+            np.array([0,1]), np.array([1,3]), np.array([3,1]), np.array([4,1]), np.array([3,4]) 
         ]
         for r,c in self.walls:
             self.grid[r,c] = TileType.WALL
@@ -82,7 +82,7 @@ class GridWorldEnv(gym.Env):
             self.grid[r,c] = TileType.PIT
         
         self.tile_A = (0,4)
-        self.tile_B = (4,0)
+        self.tile_B = (4,2)
 
 
         self.grid[self.tile_A] = TileType.A
@@ -115,6 +115,9 @@ class GridWorldEnv(gym.Env):
         observation = self._get_obs()
         info = self._get_info()
 
+        # distance for distance rewards
+        self._previous_distance = info["distance"]
+
         if self.render_mode == "human":
             self._render_frame()
 
@@ -123,8 +126,9 @@ class GridWorldEnv(gym.Env):
     def step(self, action):
         terminated = False
         reward = -0.1
-
+        #old_agent_location = self._agent_location.copy()
         new_agent_location = self._agent_location + self._action_to_direction[action]
+
         if not (0 <= new_agent_location[0] < self.size and 0 <= new_agent_location[1] < self.size):
             return self._get_obs(), reward,  terminated, False, self._get_info()
         if self.grid[new_agent_location[0], new_agent_location[1]] == TileType.WALL:
@@ -134,11 +138,11 @@ class GridWorldEnv(gym.Env):
         current_tile = self.grid[self._agent_location[0], self._agent_location[1]]
 
         if np.array_equal(self._agent_location, self._target_location):
-            reward += 100
+            reward += 1000
             terminated = True
 
         if current_tile == TileType.PIT:
-            reward += -10
+            reward -= 10
             terminated = True
         elif current_tile == TileType.A:
             if not self.visited_A:
@@ -149,6 +153,16 @@ class GridWorldEnv(gym.Env):
             self.visited_B = True
         elif current_tile == TileType.B and self.visited_B:    
             terminated = True
+
+        if not terminated:
+            current_distance = self._get_info()["distance"]
+            delta_distance = self._previous_distance - current_distance
+            if delta_distance > 0:
+                reward += 5
+            elif delta_distance < 0:
+                reward -= 2   
+            self._previous_distance = current_distance     
+
         observation = self._get_obs()
         info = self._get_info()
 
